@@ -55,6 +55,8 @@ let audioContext = null;
 let musicLoop = null;
 let musicStep = 0;
 let musicSection = 0;
+let bgMusicEl = null;
+let voiceEnabled = true;
 function ensureAudio() {
   try {
     if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -62,7 +64,7 @@ function ensureAudio() {
   } catch {
     return;
   }
-  if (!musicLoop) startMusic();
+  if (!bgMusicEl && !musicLoop) startMusic();
 }
 function tone(freq, duration, type, gainValue, slide = null) {
   if (!audioContext) return;
@@ -82,10 +84,33 @@ function playFx(type) {
   ensureAudio();
   if (type === "ok") tone(520, 0.14, "triangle", 0.028, 820);
   if (type === "wrong") tone(170, 0.2, "sawtooth", 0.038, 90);
-  if (type === "trip") tone(210, 0.16, "square", 0.04, 120);
-  if (type === "melt") tone(145, 0.22, "sawtooth", 0.045, 80);
+  if (type === "trip") {
+    tone(210, 0.16, "square", 0.04, 120);
+    playShortCircuit(0.06, 0.12);
+  }
+  if (type === "melt") {
+    tone(145, 0.22, "sawtooth", 0.045, 80);
+    playShortCircuit(0.085, 0.2);
+  }
 }
 function startMusic() {
+  if (!bgMusicEl) {
+    bgMusicEl = new Audio("./music/theme.mp3");
+    bgMusicEl.loop = true;
+    bgMusicEl.volume = 0.36;
+    bgMusicEl.preload = "auto";
+    bgMusicEl.play().catch(() => {
+      bgMusicEl = null;
+      startSynthMusicLoop();
+    });
+    if (bgMusicEl) {
+      return;
+    }
+  }
+}
+
+function startSynthMusicLoop() {
+  if (musicLoop) return;
   const bassSets = [
     [110, 123, 147, 165, 147, 123, 98, 110],
     [92, 110, 123, 147, 123, 110, 82, 92],
@@ -107,6 +132,37 @@ function startMusic() {
     musicStep += 1;
     if (musicStep % 32 === 0) musicSection = (musicSection + 1) % bassSets.length;
   }, 300);
+}
+
+function playShortCircuit(volume, duration) {
+  if (!audioContext) return;
+  const bufferSize = Math.floor(audioContext.sampleRate * duration);
+  const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+  const output = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i += 1) {
+    output[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  }
+  const source = audioContext.createBufferSource();
+  source.buffer = buffer;
+  const filter = audioContext.createBiquadFilter();
+  filter.type = "highpass";
+  filter.frequency.setValueAtTime(900, audioContext.currentTime);
+  const gain = audioContext.createGain();
+  gain.gain.setValueAtTime(volume, audioContext.currentTime);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioContext.destination);
+  source.start();
+}
+
+function speakIntroText(text) {
+  if (!voiceEnabled || !("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "ru-RU";
+  utter.rate = 0.96;
+  utter.pitch = 1;
+  window.speechSynthesis.speak(utter);
 }
 
 function fillSelects() {
@@ -417,10 +473,14 @@ restartButtonEl.addEventListener("click", () => {
 document.addEventListener("pointerdown", () => {
   ensureAudio();
 }, { once: true });
+document.addEventListener("touchstart", () => {
+  ensureAudio();
+}, { once: true, passive: true });
 document.addEventListener("keydown", (event) => {
   if (event.code === "Enter") evaluateChoice();
   if (event.code === "KeyN") nextTask();
   if (event.code === "KeyR" && state.gameOver) restartGame();
+  if (event.code === "KeyM") voiceEnabled = !voiceEnabled;
   ensureAudio();
 });
 
@@ -429,6 +489,7 @@ let typingToken = 0;
 function renderIntroText() {
   const token = ++typingToken;
   const text = introFrames[introStep];
+  speakIntroText(text);
   introTextEl.textContent = "";
   introTextEl.classList.add("typing-caret");
   let i = 0;
@@ -455,6 +516,7 @@ introNextEl.addEventListener("click", () => {
 });
 introSkipEl.addEventListener("click", () => {
   ensureAudio();
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   introOverlayEl.classList.add("hidden");
 });
 
