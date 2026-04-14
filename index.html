@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="3D тренажер электрика: подбор автомата и кабеля в щитке с визуализацией аварий.">
+  <meta property="og:title" content="3D Щиток: инженерный тренажер">
+  <meta property="og:description" content="Выбери автомат и кабель, включи линию и проверь аварийные сценарии в 3D.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <title>3D Щиток: инженерный тренажер</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="intro-overlay" class="intro-overlay">
+    <div class="intro-card">
+      <h2>Энергорайон 1996</h2>
+      <div id="intro-preview" class="intro-preview"></div>
+      <p id="intro-text">...</p>
+      <div class="intro-actions">
+        <button id="intro-next" class="action-button" type="button">Дальше</button>
+        <button id="intro-skip" class="action-button action-secondary" type="button">Пропустить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="panel">
+      <h1>3D Щиток: инженерный тренажер</h1>
+      <p id="task-title" class="task-title">Задача 1</p>
+      <p id="task-text" class="task-text"></p>
+      <div class="stats">
+        <span>Уровень: <strong id="level">1</strong></span>
+        <span>Очки: <strong id="score">0</strong></span>
+        <span>Ошибки: <strong id="mistakes">0</strong>/3</span>
+      </div>
+      <div class="calc-grid">
+        <label class="field">
+          <span>Автомат</span>
+          <select id="breaker-select"></select>
+        </label>
+        <label class="field">
+          <span>Кабель (Cu)</span>
+          <select id="cable-select"></select>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="check-button" class="action-button" type="button">Включить автомат</button>
+        <button id="next-button" class="action-button action-secondary" type="button">Следующая задача</button>
+      </div>
+      <p id="result" class="result">Выбери автомат и кабель, затем включи линию.</p>
+      <a
+        class="webinar-link"
+        href="https://bothelp.cc/mini?domain=autelec&id=15"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Бесплатный вебинар по проектированию электрики
+      </a>
+    </div>
+
+    <div class="visual">
+      <div id="scene3d"></div>
+      <div class="touch-controls">
+        <button id="touch-left" class="touch-btn" type="button">◀</button>
+        <button id="touch-action" class="touch-btn touch-btn-wide" type="button">ДЕЙСТВИЕ</button>
+        <button id="touch-right" class="touch-btn" type="button">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-over" class="game-over hidden">
+    <h2>Тренировка завершена</h2>
+    <p>Твой результат: <span id="final-score">0</span> очков</p>
+    <div class="game-over-actions">
+      <button id="restart-button" class="action-button" type="button">Начать заново</button>
+      <a
+        class="action-button action-link"
+        href="https://bothelp.cc/mini?domain=autelec&id=15"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Бесплатный вебинар по электрике
+      </a>
+    </div>
+    <p>Отработай подбор автомата и кабеля для новых условий.</p>
+  </div>
+
+  <script type="module" src="./retro-game.js"></script>
+</body>
+</html>
